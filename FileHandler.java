@@ -1,0 +1,72 @@
+package core;
+
+import shared.Constants;
+import java.io.*;
+import java.util.*;
+
+public class FileHandler {
+
+    static {
+        new File(Constants.DATA_DIR).mkdirs();
+    }
+    
+    public static void appendToFile(String filename, String record) {//writing
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
+            writer.write(record);
+            writer.newLine();
+        } catch (IOException e) {
+            System.err.println("Error writing to " + filename + ": " + e.getMessage());
+        }
+    }
+
+    public static List<String> readAllLines(String filename) {//reading
+        List<String> lines = new ArrayList<>();
+        File file = new File(filename);
+
+        if (!file.exists()) return lines;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty() && !line.startsWith("#")) {
+                    lines.add(line);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading " + filename + ": " + e.getMessage());
+        }
+        return lines;
+    }
+
+    public static boolean userExists(String userID) {
+        return findUserRecord(userID) != null;
+    }
+
+    private static String findUserRecord(String userID) {
+        for (String record : readAllLines(Constants.USERS_FILE)) {
+            String[] parts = parse(record);
+            if (parts != null && parts[0].equals(userID)) {
+                return record;
+            }
+        }
+        return null;
+    }
+
+    public static String[] authenticate(String userID, String password) {//authentication
+
+        String record = findUserRecord(userID);
+        if (record == null) return null;
+
+        String[] parts = parse(record);
+        if (parts == null) return null;
+
+        if (!parts[3].equals(password)) return null;//stored pass hash
+
+        return parts;
+    }
+
+    private static String[] parse(String record) {//parse
+        String[] parts = record.split("\\" + Constants.DELIMITER);
+        return parts.length >= 5 ? parts : null;
+    }
+}
