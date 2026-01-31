@@ -3,16 +3,16 @@ package core;
 import shared.Constants;
 import javax.swing.JPanel;
 
-public abstract class User { //future proof [OCP]
+public abstract class User {//OCP future proof
 
     protected final String userID;
     protected String name;
     protected String email;
-    private String passwordHash; //encapsulation[never directly accessible]
+    private String passwordHash; //stored hashed password
     protected boolean isLoggedIn;
     protected UserRole role;
 
-    //enum for predefined role/constants [OCP]
+    //enum for predefined roles
     public enum UserRole {
         STUDENT,
         COORDINATOR,
@@ -22,7 +22,7 @@ public abstract class User { //future proof [OCP]
     //constructor
     public User(String userID, String name, String email, String password, UserRole role) {
 
-        if (userID == null || userID.trim().isEmpty()) { //validation prevents invalid objects from exisiting
+        if (userID == null || userID.trim().isEmpty()) {
             throw new IllegalArgumentException("User ID cannot be empty");
         }
         if (email == null || !email.contains("@")) {
@@ -32,7 +32,7 @@ public abstract class User { //future proof [OCP]
         this.userID = userID.trim();
         this.name = name.trim();
         this.email = email.trim();
-        this.passwordHash = hash(password);
+        this.passwordHash = core.FileHandler.hashPassword(password); //hash the password
         this.role = role;
         this.isLoggedIn = false;
     }
@@ -44,25 +44,26 @@ public abstract class User { //future proof [OCP]
     public UserRole getRole() { return role; }
     public boolean isLoggedIn() { return isLoggedIn; }
 
-    //setter with validation
+    //setters
     public void setName(String name) {
         if (name != null && !name.trim().isEmpty()) {
             this.name = name;
         }
     }
-    //setter with validation
+
     public void setEmail(String email) {
         if (email != null && email.contains("@")) {
             this.email = email;
         }
     }
 
-    //consistent authentication for all classes(LSP)
+    //authentication
     public boolean authenticate(String inputPassword) {
-        return passwordHash.equals(hash(inputPassword));
+        String hashedInput = core.FileHandler.hashPassword(inputPassword);
+        return passwordHash.equals(hashedInput);
     }
 
-    //login/logout (LSP)
+    //login/logout
     public boolean login(String inputPassword) {
         if (authenticate(inputPassword)) {
             isLoggedIn = true;
@@ -71,23 +72,22 @@ public abstract class User { //future proof [OCP]
         return false;
     }
 
-    public void logout() { //LSP
+    public void logout() {
         isLoggedIn = false;
     }
 
     //change password
     public boolean changePassword(String oldPassword, String newPassword) {
-        if (!authenticate(oldPassword)) {
-            return false;
-        }
-        passwordHash = hash(newPassword);
+        if (!authenticate(oldPassword)) return false;
+        passwordHash = core.FileHandler.hashPassword(newPassword);
         return true;
     }
 
+    //abstract methods for dashboard
     public abstract String getDashboardTitle();
-    public abstract JPanel getDashboardPanel(); //abstract ui (ocp+lsp)
+    public abstract JPanel getDashboardPanel();
 
-    //persistent saving 
+    //save user to file
     public void saveToFile() {
         String record = String.join(Constants.DELIMITER,
             userID,
@@ -96,16 +96,11 @@ public abstract class User { //future proof [OCP]
             passwordHash,
             role.name()
         );
-        FileHandler.appendToFile(Constants.USERS_FILE, record);
-    }
-
-    //hash helper
-    private String hash(String input) {
-        return Integer.toString(input.hashCode());
+        core.FileHandler.appendToFile(Constants.USERS_FILE, record);
     }
 
     @Override
-    public String toString() { //overrides the default version into readable format
+    public String toString() {
         return String.format(
             "User[ID=%s, Name=%s, Role=%s]",
             userID, name, role
