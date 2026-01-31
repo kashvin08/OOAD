@@ -7,9 +7,13 @@ import java.util.*;
 public class FileHandler {
 
     static {
-        new File(Constants.DATA_DIR).mkdirs();
+        new File(Constants.DATA_DIR).mkdirs();//ensure data dir exists
     }
-    
+//hashing password for better security
+    public static String hashPassword(String password) {
+        return Integer.toString(password.hashCode());
+    }
+
     public static void appendToFile(String filename, String record) {//writing
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
             writer.write(record);
@@ -37,7 +41,7 @@ public class FileHandler {
         }
         return lines;
     }
-
+    
     public static boolean userExists(String userID) {
         return findUserRecord(userID) != null;
     }
@@ -52,7 +56,7 @@ public class FileHandler {
         return null;
     }
 
-    public static String[] authenticate(String userID, String password) {//authentication
+    public static String[] authenticate(String userID, String password) {//authenticate
 
         String record = findUserRecord(userID);
         if (record == null) return null;
@@ -60,12 +64,14 @@ public class FileHandler {
         String[] parts = parse(record);
         if (parts == null) return null;
 
-        if (!parts[3].equals(Integer.toString(password.hashCode())));//hash input pass before comparing
+        String hashedInput = hashPassword(password);//hash input password before comparing
+
+        if (!parts[3].equals(hashedInput)) return null;
 
         return parts;
     }
 
-    private static String[] parse(String record) {//parse
+    private static String[] parse(String record) {//parsing
         String[] parts = record.split("\\" + Constants.DELIMITER);
         return parts.length >= 5 ? parts : null;
     }
