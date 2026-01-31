@@ -24,14 +24,14 @@ public class LoginSystem {
         loginFrame.setLayout(new BorderLayout());
         loginFrame.setLocationRelativeTo(null);
 
-        JPanel headerPanel = new JPanel();//header
+        JPanel headerPanel = new JPanel();
         headerPanel.setBackground(Constants.PRIMARY_COLOR);
-        JLabel lblTitle = new JLabel("FCI Seminar Management System");
+        JLabel lblTitle = new JLabel(Constants.APP_TITLE);
         lblTitle.setFont(new Font("Arial", Font.BOLD, 18));
         lblTitle.setForeground(Color.WHITE);
         headerPanel.add(lblTitle);
 
-        JPanel formPanel = new JPanel(new GridBagLayout());//form
+        JPanel formPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -80,7 +80,6 @@ public class LoginSystem {
     }
 
     private void performLogin() {
-
         String userID = txtUserID.getText().trim();
         String password = new String(txtPassword.getPassword());
         String roleText = (String) cmbRole.getSelectedItem();
@@ -100,10 +99,11 @@ public class LoginSystem {
             return;
         }
 
+        //authenticate using hashed password
         String[] userData = FileHandler.authenticate(userID, password);
 
         if (userData != null &&
-            MainApplication.UserRole.valueOf(userData[3]).equals(selectedRole)) {
+            MainApplication.UserRole.valueOf(userData[4]).equals(selectedRole)) {
 
             JOptionPane.showMessageDialog(loginFrame,
                     "Login successful! Welcome " + userData[1],
@@ -120,7 +120,6 @@ public class LoginSystem {
     }
 
     private void showRegistration() {
-
         JPanel panel = new JPanel(new GridLayout(5, 2, 5, 5));
 
         JTextField txtID = new JTextField();
@@ -151,11 +150,13 @@ public class LoginSystem {
 
         if (result == JOptionPane.OK_OPTION) {
 
+            String hashedPassword = FileHandler.hashPassword(new String(txtPass.getPassword()));
+
             String record = String.join(Constants.DELIMITER,
                     txtID.getText().trim(),
                     txtName.getText().trim(),
                     txtEmail.getText().trim(),
-                    new String(txtPass.getPassword()),
+                    hashedPassword, //save hashed password
                     cmbRegRole.getSelectedItem().toString()
             );
 
