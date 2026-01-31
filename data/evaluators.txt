@@ -1,5 +1,5 @@
-E001|Dr. Siti|siti@uni.edu|pass1|EVALUATOR
-E002|Prof. Tan|tan@uni.edu|pass2|EVALUATOR
-E003|Dr. Kumar|kumar@uni.edu|pass3|EVALUATOR
-E004|Madam Lee|lee@uni.edu|pass4|EVALUATOR
-E005|Dr. Sarah|sarah@uni.edu|pass5|EVALUATOR
+1|Dr. Siti|siti@mmu.edu|pass1|EVALUATOR
+2|Prof. Tan|tan@mmu.edu|pass2|EVALUATOR
+3|Dr. Kumar|kumar@mmu.edu|pass3|EVALUATOR
+4|Madam Lee|lee@mmu.edu|pass4|EVALUATOR
+5|Dr. Sarah|sarah@mmu.edu|pass5|EVALUATOR
