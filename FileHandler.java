@@ -60,7 +60,7 @@ public class FileHandler {
         String[] parts = parse(record);
         if (parts == null) return null;
 
-        if (!parts[3].equals(password)) return null;//stored pass hash
+        if (!parts[3].equals(Integer.toString(password.hashCode())));//hash input pass before comparing
 
         return parts;
     }
