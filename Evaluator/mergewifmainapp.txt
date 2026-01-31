@@ -1,0 +1,25 @@
+In mainapp.java add this
+
+
+EVALUATOR {
+    @Override
+    void buildNavigation(MainApplication app, JPanel nav) {
+        JButton btn = new JButton("Evaluate Presentations");
+        btn.setMaximumSize(new Dimension(180, 40));
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        btn.addActionListener(e -> {
+            Evaluator evaluatorUser = new Evaluator(
+                app.getCurrentUserID(), 
+                app.getCurrentUserName(), 
+                "email@placeholder",
+                "hashedPass" 
+            );
+            
+            app.showContent(evaluatorUser.getDashboardPanel());
+        });
+        nav.add(btn);
+    }
+},
+
+something need change like size and alignment of cuz i dk how will it look like in your screen
