@@ -1,0 +1,4 @@
+S001|Ali|ali@uni.edu|123|STUDENT
+S002|Bela|bela@uni.edu|123|STUDENT
+S003|Chong|chong@uni.edu|123|STUDENT
+S004|David|david@uni.edu|123|STUDENT
