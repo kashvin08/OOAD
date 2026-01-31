@@ -16,7 +16,7 @@ public abstract class User { //future proof [OCP]
     public enum UserRole {
         STUDENT,
         COORDINATOR,
-        CUSTOMER
+        EVALUATOR
     }
 
     //constructor
