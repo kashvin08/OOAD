@@ -1,57 +1,110 @@
 package student;
 
 import shared.Constants;
-import core.MainApplication;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.Random;
 
-public class RegistrationForm extends JPanel {
-    private JTextField title, supervisor;
-    private JTextArea abstractTxt;
-    private JComboBox<String> type;
+public class RegistrationForm extends JFrame {
 
-    public RegistrationForm() {
-        setLayout(new BorderLayout());
-        setBackground(Constants.COLOR_BACKGROUND);
-        setBorder(new EmptyBorder(20, 20, 20, 20));
+    private JTextField titleField, supervisorField;
+    private JTextArea abstractArea;
+    private JComboBox<String> typeCombo;
+    private JButton submitBtn;
+    private String studentID;
+    private String studentName;
 
-        JPanel card = new JPanel(new GridBagLayout());
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), new EmptyBorder(30, 40, 30, 40)));
+    public RegistrationForm(String userID, String userName) {
+        this.studentID = userID;
+        this.studentName = userName;
 
+        setTitle("Seminar Registration - " + studentName + " (" + studentID + ")");
+        setLayout(new BorderLayout(10, 10));
+        
+        //header
+        JPanel headerPanel = new JPanel();
+        headerPanel.setBackground(Constants.PRIMARY_COLOR);
+        JLabel lblHeader = new JLabel("REGISTER NEW SEMINAR");
+        lblHeader.setForeground(Color.WHITE);
+        lblHeader.setFont(new Font("Arial", Font.BOLD, 16));
+        headerPanel.add(lblHeader);
+
+        //form panel
+        JPanel formPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL; gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(5, 10, 5, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel head = new JLabel("SEMINAR REGISTRATION");
-        head.setFont(new Font("SansSerif", Font.BOLD, 20));
-        gbc.gridwidth = 2; gbc.gridx = 0; gbc.gridy = 0; card.add(head, gbc);
+        titleField = new JTextField(20);
+        abstractArea = new JTextArea(5, 20);
+        abstractArea.setLineWrap(true);
+        abstractArea.setWrapStyleWord(true);
+        supervisorField = new JTextField(20);
+        typeCombo = new JComboBox<>(new String[]{"Oral", "Poster"});
+        submitBtn = new JButton("Submit Registration");
+        submitBtn.setBackground(Constants.PRIMARY_COLOR);
+        submitBtn.setForeground(Color.WHITE);
 
-        gbc.gridwidth = 1;
-        gbc.gridy = 1; card.add(new JLabel("Title:"), gbc);
-        title = new JTextField(20); gbc.gridx = 1; card.add(title, gbc);
+        //adding components to gridbag for dynamic arrangement
+        gbc.gridx = 0; gbc.gridy = 0;
+        formPanel.add(new JLabel("Project Title:"), gbc);
+        gbc.gridx = 1;
+        formPanel.add(titleField, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2; card.add(new JLabel("Supervisor:"), gbc);
-        supervisor = new JTextField(20); gbc.gridx = 1; card.add(supervisor, gbc);
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(new JLabel("Supervisor Name:"), gbc);
+        gbc.gridx = 1;
+        formPanel.add(supervisorField, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 3; card.add(new JLabel("Type:"), gbc);
-        type = new JComboBox<>(new String[]{"Oral", "Poster"}); gbc.gridx = 1; card.add(type, gbc);
+        gbc.gridx = 0; gbc.gridy = 2;
+        formPanel.add(new JLabel("Presentation Type:"), gbc);
+        gbc.gridx = 1;
+        formPanel.add(typeCombo, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 4; card.add(new JLabel("Abstract:"), gbc);
-        abstractTxt = new JTextArea(5, 20); gbc.gridx = 1; card.add(new JScrollPane(abstractTxt), gbc);
+        gbc.gridx = 0; gbc.gridy = 3;
+        formPanel.add(new JLabel("Abstract:"), gbc);
+        gbc.gridx = 1;
+        formPanel.add(new JScrollPane(abstractArea), gbc);
 
-        JButton sub = new JButton("SUBMIT");
-        sub.setBackground(Constants.COLOR_ACCENT); sub.setForeground(Color.WHITE);
-        gbc.gridwidth = 2; gbc.gridx = 0; gbc.gridy = 5; card.add(sub, gbc);
+        JPanel btnPanel = new JPanel();
+        btnPanel.add(submitBtn);
 
-        sub.addActionListener(e -> {
-            MainApplication main = (MainApplication) SwingUtilities.getWindowAncestor(this);
-            Student s = new Student(main.getCurrentUserID(), "Name", "email@uni.edu", "pass");
-            s.register(title.getText(), abstractTxt.getText(), supervisor.getText(), (String)type.getSelectedItem());
-            new StudentController().saveStudent(s);
-            JOptionPane.showMessageDialog(this, "Submitted!");
-        });
+        //submit actn
+        submitBtn.addActionListener(e -> performSubmission());
 
-        add(card, BorderLayout.CENTER);
+        add(headerPanel, BorderLayout.NORTH);
+        add(formPanel, BorderLayout.CENTER);
+        add(btnPanel, BorderLayout.SOUTH);
+
+        setSize(500, 450);
+        setLocationRelativeTo(null); 
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setVisible(true);
+    }
+
+    private void performSubmission() {
+        String title = titleField.getText().trim();
+        String supervisor = supervisorField.getText().trim();
+        String type = typeCombo.getSelectedItem().toString(); 
+        String abstractTxt = abstractArea.getText().trim().replace("|", ""); 
+
+        if (title.isEmpty() || supervisor.isEmpty() || abstractTxt.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill all required fields!");
+            return;
+        }
+
+        //board id for poster submissions
+        String boardID = "N/A";
+        if (type.equalsIgnoreCase("Poster")) {
+            boardID = "B-" + (new Random().nextInt(900) + 100); // e.g., B-452
+        }
+
+        String record = String.join(Constants.DELIMITER, 
+            studentID, studentName, title, supervisor, type, abstractTxt, "NONE", "PENDING", boardID
+        );
+
+        core.FileHandler.appendToFile(Constants.SUBMISSIONS_FILE, record);
+        JOptionPane.showMessageDialog(this, "Seminar Registered Successfully!\nBoard ID: " + boardID);
+        this.dispose();
     }
 }

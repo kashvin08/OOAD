@@ -1,6 +1,5 @@
 package evaluator;
 
-
 public class RubricSystem {
 
     public static final String[] CRITERIA = {

@@ -42,6 +42,32 @@ public class FileHandler {
         return lines;
     }
     
+    public static void updateSubmissionFile(String studentID, String filePath) {
+    List<String> lines = readAllLines(Constants.SUBMISSIONS_FILE);
+    boolean found = false;
+
+    for (int i = 0; i < lines.size(); i++) {
+        String[] parts = lines.get(i).split("\\" + Constants.DELIMITER);
+        if (parts[0].equals(studentID)) {
+            parts[6] = filePath; 
+            lines.set(i, String.join(Constants.DELIMITER, parts));
+            found = true;
+            break;
+        }
+    }
+
+    if (found) {
+        //overwrite file with updated list
+        try (PrintWriter pw = new PrintWriter(new FileWriter(Constants.SUBMISSIONS_FILE))) {
+            for (String line : lines) {
+                pw.println(line);
+            }
+        } catch (IOException e) {
+            System.err.println("Update failed: " + e.getMessage());
+        }
+    }
+}
+    
     public static boolean userExists(String userID) {
         return findUserRecord(userID) != null;
     }

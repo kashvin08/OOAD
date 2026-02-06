@@ -4,7 +4,7 @@ import shared.Constants;
 import java.util.*;
 import core.FileHandler;
 
-// PATTERN: Singleton
+//PATTERN: singleton
 public class DataAnalytics {
 
     private static DataAnalytics instance;
@@ -27,21 +27,17 @@ public class DataAnalytics {
         return sum / scores.size();
     }
 
-private ArrayList<Double> getScoresForStudent(String studentID) {
+    private ArrayList<Double> getScoresForStudent(String studentID) {
     ArrayList<Double> scores = new ArrayList<>();
     List<String> lines = FileHandler.readAllLines(Constants.EVALUATIONS_FILE);
 
     for (String line : lines) {
         String[] data = line.split("\\" + Constants.DELIMITER);
-
-        //column 1 = Student ID
-        if (data.length >= 7 && data[1].trim().equalsIgnoreCase(studentID)) {
+        
+        if (data.length >= 7 && data[1].trim().equals(studentID)) {
             try {
-                double totalScore = Double.parseDouble(data[6].trim());
-                scores.add(totalScore);
-            } catch (Exception e) {
-                System.err.println("Skipping malformed evaluation line");
-            }
+                scores.add(Double.parseDouble(data[6].trim()));
+            } catch (Exception e) { System.err.println("Error: invalid score format for student " + studentID); }
         }
     }
     return scores;
@@ -58,7 +54,7 @@ private ArrayList<Double> getScoresForStudent(String studentID) {
                     int totalIndex = data.length - 2;
                     double score = Double.parseDouble(data[totalIndex].trim());
                     if (score > max) max = score;
-                } catch (Exception e) { /* continue */ }
+                } catch (Exception e) { }
             }
         }
         return max;

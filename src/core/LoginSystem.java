@@ -3,7 +3,6 @@ package core;
 import shared.Constants;
 import javax.swing.*;
 import java.awt.*;
-import core.User.UserRole;
 
 public class LoginSystem {
 
@@ -18,7 +17,7 @@ public class LoginSystem {
         createLoginGUI();
     }
 
-    private void createLoginGUI() {
+    private void createLoginGUI() {//login GUI
         loginFrame = new JFrame(Constants.APP_TITLE + " - Login");
         loginFrame.setSize(400, 350);
         loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -54,12 +53,11 @@ public class LoginSystem {
         gbc.gridx = 1;
 
         cmbRole = new JComboBox<>(new String[] {
-    "Select Role",
-    UserRole.STUDENT.name(),
-    UserRole.EVALUATOR.name(),
-    UserRole.COORDINATOR.name()
-});
-
+                "Select Role",
+                MainApplication.UserRole.STUDENT.name(),
+                MainApplication.UserRole.EVALUATOR.name(),
+                MainApplication.UserRole.COORDINATOR.name()
+        });
         formPanel.add(cmbRole, gbc);
 
         JPanel buttonPanel = new JPanel();
@@ -92,9 +90,9 @@ public class LoginSystem {
             return;
         }
 
-        UserRole selectedRole;
+        MainApplication.UserRole selectedRole;
         try {
-            selectedRole = UserRole.valueOf(roleText);
+            selectedRole = MainApplication.UserRole.valueOf(roleText);
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog(loginFrame,
                     "Invalid role selected!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -105,7 +103,8 @@ public class LoginSystem {
         String[] userData = FileHandler.authenticate(userID, password);
 
         if (userData != null &&
-    UserRole.valueOf(userData[4]).equals(selectedRole)) {
+            MainApplication.UserRole.valueOf(userData[4]).equals(selectedRole)) {
+
             JOptionPane.showMessageDialog(loginFrame,
                     "Login successful! Welcome " + userData[1],
                     "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -129,15 +128,13 @@ public class LoginSystem {
         JPasswordField txtPass = new JPasswordField();
 
         JComboBox<String> cmbRegRole = new JComboBox<>(
-    new String[]{
-        UserRole.STUDENT.name(),
-        UserRole.EVALUATOR.name(),
-        UserRole.COORDINATOR.name()
-    }
-);
+                new String[]{
+                        MainApplication.UserRole.STUDENT.name(),
+                        MainApplication.UserRole.EVALUATOR.name(),
+                        MainApplication.UserRole.COORDINATOR.name()
+                });
 
-
-        panel.add(new JLabel("User ID:"));
+        panel.add(new JLabel("User ID:"));//details
         panel.add(txtID);
         panel.add(new JLabel("Name:"));
         panel.add(txtName);
@@ -151,29 +148,24 @@ public class LoginSystem {
         int result = JOptionPane.showConfirmDialog(loginFrame, panel,
                 "Register New User", JOptionPane.OK_CANCEL_OPTION);
 
-        // Inside LoginSystem.java -> showRegistration()
         if (result == JOptionPane.OK_OPTION) {
-            String id = txtID.getText().trim();
-            String name = txtName.getText().trim();
-            String email = txtEmail.getText().trim();
-        String pass = new String(txtPass.getPassword());
-        String role = cmbRegRole.getSelectedItem().toString(); // "STUDENT", "COORDINATOR", or "EVALUATOR"
 
-        String hashedPassword = FileHandler.hashPassword(pass);
-            String record = String.join(Constants.DELIMITER, id, name, email, hashedPassword, role);
-        
-        // ALWAYS save to master users file for login purposes
-        FileHandler.appendToFile(Constants.USERS_FILE, record);
+            String hashedPassword = FileHandler.hashPassword(new String(txtPass.getPassword()));
 
-        // ONLY save to students.txt if they are actually a student
-        if (role.equals("STUDENT")) {
-            FileHandler.appendToFile(Constants.STUDENTS_FILE, record);
-     } 
-        // ONLY save to evaluators.txt if they are an evaluator
-        else if (role.equals("EVALUATOR")) {
-            FileHandler.appendToFile(Constants.EVALUATORS_FILE, record);
+            String record = String.join(Constants.DELIMITER,
+                    txtID.getText().trim(),
+                    txtName.getText().trim(),
+                    txtEmail.getText().trim(),
+                    hashedPassword, //save hashed password
+                    cmbRegRole.getSelectedItem().toString()
+            );
+
+            FileHandler.appendToFile(Constants.USERS_FILE, record);
+
+            JOptionPane.showMessageDialog(loginFrame,
+                    "Registration successful! You can now login.",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
         }
-    }
     }
 
     public void show() {

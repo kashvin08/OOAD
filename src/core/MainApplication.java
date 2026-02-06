@@ -2,9 +2,10 @@ package core;
 
 import shared.Constants;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import core.User.UserRole;
-import award.SystemAnalyticsFacade;
+import java.util.List;
+import evaluator.Evaluator;
 
 public class MainApplication extends JFrame {
 
@@ -13,6 +14,34 @@ public class MainApplication extends JFrame {
     private String currentUserName;
     private UserRole currentUserRole;
 
+    public enum UserRole {//overriding for different dashboards (role based)
+        STUDENT {
+            @Override
+            void buildNavigation(MainApplication app, JPanel nav) {
+                app.addNavButton(nav, "Register Seminar");
+                app.addNavButton(nav, "Upload Materials");
+                app.addNavButton(nav, "View Schedule");
+                app.addNavButton(nav, "Vote for Presentation");
+            }
+        },
+        EVALUATOR {
+            @Override
+            void buildNavigation(MainApplication app, JPanel nav) {
+                app.addNavButton(nav, "Evaluate Presentations");
+                app.addNavButton(nav, "View Assignments");
+            }
+        },
+        COORDINATOR {
+            @Override
+            void buildNavigation(MainApplication app, JPanel nav) {
+                app.addNavButton(nav, "Create Session");
+                app.addNavButton(nav, "Generate Reports");
+                app.addNavButton(nav, "Manage Awards");
+            }
+        };
+
+        abstract void buildNavigation(MainApplication app, JPanel nav);
+    }
 
     public MainApplication() {
         initialiseUI();
@@ -36,16 +65,27 @@ public class MainApplication extends JFrame {
         buildDashboard();
     }
 
-    private void buildDashboard() {
+    private void buildDashboard() {//diffrent dashboards for different roles
         if (currentPanel != null) {
             remove(currentPanel);
         }
+
         currentPanel = new JPanel(new BorderLayout());
         currentPanel.add(createHeaderPanel(), BorderLayout.NORTH);
         currentPanel.add(createNavigationPanel(), BorderLayout.WEST);
-        currentPanel.add(createContentPanel(), BorderLayout.CENTER);
 
-        add(currentPanel);
+        if (currentUserRole == UserRole.EVALUATOR) {
+            Evaluator eval = new Evaluator(currentUserID, currentUserName, "notset@system.com", "evaa");
+            currentPanel.add(eval.getDashboardPanel(), BorderLayout.CENTER);
+        } else if (currentUserRole == UserRole.STUDENT) {
+            student.Student stu = new student.Student(currentUserID, currentUserName, "notset@system.com", "evi");
+            currentPanel.add(stu.getDashboardPanel(), BorderLayout.CENTER);
+        } else if (currentUserRole == UserRole.COORDINATOR) {
+            coordinator.Coordinator coord = new coordinator.Coordinator(currentUserID, currentUserName, "coord@system.com", "N/A");
+            currentPanel.add(coord.getDashboardPanel(), BorderLayout.CENTER);
+        }
+
+        add(currentPanel, BorderLayout.CENTER);
         revalidate();
         repaint();
     }
@@ -64,31 +104,10 @@ public class MainApplication extends JFrame {
 
         header.add(title, BorderLayout.CENTER);
         header.add(logout, BorderLayout.EAST);
+
         return header;
     }
 
-    private void buildRoleNavigation(JPanel navPanel) {
-    switch (currentUserRole) {
-        case STUDENT:
-            addNavButton(navPanel, "Register Seminar");
-            addNavButton(navPanel, "Upload Materials");
-            addNavButton(navPanel, "View Schedule");
-            break;
-
-        case EVALUATOR:
-            addNavButton(navPanel, "Evaluate Presentations");
-            addNavButton(navPanel, "View Assignments");
-            addNavButton(navPanel, "Submit Scores");
-            break;
-
-        case COORDINATOR:
-            addNavButton(navPanel, "Create Session");
-            addNavButton(navPanel, "Generate Reports");
-            addNavButton(navPanel, "Manage Awards");
-            break;
-    }
-}
-    
     private JPanel createNavigationPanel() {
         JPanel navPanel = new JPanel();
         navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.Y_AXIS));
@@ -97,7 +116,7 @@ public class MainApplication extends JFrame {
         addNavButton(navPanel, "Dashboard");
         addNavButton(navPanel, "Profile");
 
-        buildRoleNavigation(navPanel);
+        currentUserRole.buildNavigation(this, navPanel);
 
         navPanel.add(Box.createVerticalGlue());
         return navPanel;
@@ -106,11 +125,12 @@ public class MainApplication extends JFrame {
     private JPanel createContentPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         JLabel welcome = new JLabel(
-            "Welcome, " + currentUserName + " (" + currentUserRole + ")",
-            SwingConstants.CENTER
+                "Welcome, " + currentUserName + " (" + currentUserRole + ")",
+                SwingConstants.CENTER
         );
         welcome.setFont(new Font("Arial", Font.BOLD, 24));
         welcome.setForeground(Constants.PRIMARY_COLOR);
+
         panel.add(welcome, BorderLayout.CENTER);
         return panel;
     }
@@ -120,185 +140,137 @@ public class MainApplication extends JFrame {
         button.setMaximumSize(new Dimension(180, 40));
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setFocusPainted(false);
+
         button.addActionListener(e -> handleNavigation(text));
+
         panel.add(Box.createRigidArea(new Dimension(0, 10)));
         panel.add(button);
     }
 
-    private JPanel createAwardPanel() {
-        SystemAnalyticsFacade facade = new SystemAnalyticsFacade();
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
+    private void handleNavigation(String menuItem) {//navigations for each role
+        if (menuItem.equals("Dashboard")) {
+            buildDashboard();
+            return;
+        }
 
-        JTextArea reportArea = new JTextArea(facade.generateFullReport());
-        reportArea.setEditable(false);
-        reportArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        if (menuItem.equals("Profile")) {
+            JOptionPane.showMessageDialog(this, "User: " + currentUserName + "\nID: " + currentUserID + "\nRole: " + currentUserRole);
+            return;
+        }
 
-        String winners = "<html><b>Oral Winner:</b> " + facade.getOralWinner() + 
-                         "<br><b>Poster Winner:</b> " + facade.getPosterWinner() + "</html>";
-        JLabel lblWinners = new JLabel(winners);
-        lblWinners.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        if (currentUserRole == UserRole.STUDENT) {
+            switch (menuItem) {
+                case "Register Seminar":
+                    SwingUtilities.invokeLater(() -> new student.RegistrationForm(currentUserID, currentUserName));
+                    return;
+                case "Upload Materials":
+                    SwingUtilities.invokeLater(() -> new student.UploadForm(currentUserID, currentUserName));
+                    return;
+                case "View Schedule":
+                    showScheduleView();
+                    return;
+                case "Vote for Presentation": 
+                    SwingUtilities.invokeLater(() -> new student.VotingForm(currentUserID));
+                    return;
+                }
+        } 
+        
+        else if (currentUserRole == UserRole.EVALUATOR) {
+            Component center = ((BorderLayout) currentPanel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+            if (center instanceof evaluator.EvaluatorGUI) {
+                evaluator.EvaluatorGUI evalGUI = (evaluator.EvaluatorGUI) center;
+                switch (menuItem) {
+                    case "Evaluate Presentations":
+                        evalGUI.handleInteraction();
+                        return;
+                    case "View Assignments":
+                        evalGUI.loadData();
+                        JOptionPane.showMessageDialog(this, "Assignments Refreshed!");
+                        return;
+                }
+            }
+        } 
+        
+        else if (currentUserRole == UserRole.COORDINATOR) {
+            Component center = ((BorderLayout) currentPanel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+            if (center instanceof coordinator.CoordinatorGUI) {
+                coordinator.CoordinatorGUI coordGUI = (coordinator.CoordinatorGUI) center;
+                switch (menuItem) {
+                    case "Create Session":
+                        coordGUI.refreshTable();
+                        return;
+                    case "Generate Reports":
+                        coordGUI.showProgressReport();
+                        return;
+                    case "Manage Awards":
+                        coordGUI.showAwardNominations();
+                        return;
+                }
+            }
+        }
+    } 
 
-        JButton btnExport = new JButton("Export Report (TXT)");
-        btnExport.addActionListener(e -> facade.exportReportToText("Seminar_Report_2026"));
+    private void showScheduleView() {//schedule viewing
+        JFrame frame = new JFrame("My Seminar Schedule");
+        frame.setSize(950, 300); 
+        frame.setLocationRelativeTo(this);
 
-        panel.add(lblWinners, BorderLayout.NORTH);
-        panel.add(new JScrollPane(reportArea), BorderLayout.CENTER);
-        panel.add(btnExport, BorderLayout.SOUTH);
-        return panel;
-    }
+        String[] columns = {"ID", "Name", "Title", "Type", "Time", "Board ID", "Status"};
+        DefaultTableModel model = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
 
-    private void handleNavigation(String menuItem) {
-    // 1. Identify and remove the existing center component
-    BorderLayout layout = (BorderLayout) currentPanel.getLayout();
-    Component centerComp = layout.getLayoutComponent(BorderLayout.CENTER);
-    
-    if (centerComp != null) {
-        currentPanel.remove(centerComp);
-    }
+        List<String> subLines = FileHandler.readAllLines(shared.Constants.SUBMISSIONS_FILE);
+        List<String> sessionLines = FileHandler.readAllLines(shared.Constants.SESSIONS_FILE);
 
-    JPanel newContent;
-
-    //specialized routing logic
-    switch (menuItem) {
-        case "Register Seminar":
-            newContent = new student.RegistrationForm();
-            break;
+        for (String subLine : subLines) {
+            String[] subData = subLine.split("\\" + shared.Constants.DELIMITER);
             
-        case "Upload Materials":
-            newContent = new student.UploadForm();
-            break;
+            if (subData.length >= 8 && subData[0].equals(currentUserID)) {
+                String studentName = subData[1];
+                String sessionTime = "Not Assigned";
 
-        case "Create Session":
-    if (currentUserRole == UserRole.COORDINATOR) {
-        newContent = new coordinator.CoordinatorGUI();
-    } else {
-        newContent = new JPanel();
-        newContent.add(new JLabel("Access denied."));
-    }
-    break;
+                for (String sLine : sessionLines) {
+                    String[] sParts = sLine.split("\\" + Constants.DELIMITER);
+                    if (sParts.length >= 6 && sParts[5].contains(studentName)) {
+                        sessionTime = sParts[2]; 
+                        break;
+                    }
+                }
 
-        case "View Schedule":
-    if (currentUserRole == UserRole.STUDENT) {
-        newContent = new student.StudentGUI(currentUserID, currentUserRole);
-    } else if (currentUserRole == UserRole.COORDINATOR) {
-        newContent = new coordinator.CoordinatorGUI();
-    } else {
-        newContent = new JPanel();
-        newContent.add(new JLabel("Access denied."));
-    }
-    break;
+                String boardID = (subData.length >= 9) ? subData[8] : "N/A";
 
-        case "Evaluate Presentations":
-        case "Submit Scores":
-            evaluator.Evaluator evalUser = new evaluator.Evaluator(currentUserID, currentUserName, "eval@uni.edu", "nopass");
-            newContent = new evaluator.EvaluatorGUI(evalUser); 
-            break;
+                Object[] tableRow = {
+                    subData[0],//id
+                    subData[1],//name
+                    subData[2],//title
+                    subData[4],//type
+                    sessionTime,//time
+                    boardID,//board id (in pdf reqs)
+                    subData[7]//status
+                };
+                model.addRow(tableRow);
+            }
+        }
 
-        case "View Assignments":
-            evaluator.Evaluator viewOnlyEval = new evaluator.Evaluator(currentUserID, currentUserName, "eval@uni.edu", "nopass");
-            evaluator.EvaluatorGUI viewPanel = new evaluator.EvaluatorGUI(viewOnlyEval);
-            newContent = viewPanel;
-            break;
+        JTable table = new JTable(model);
+        frame.add(new JScrollPane(table));
 
-        case "Manage Awards":
-            // Create a master panel for the Coordinator to see everything
-             JPanel masterAwardPanel = new JPanel(new BorderLayout());
-    
-            // Top Section: The Winners
-            award.SystemAnalyticsFacade facade = new award.SystemAnalyticsFacade();
-            String winnerInfo = "<html><div style='padding:10px; background:#FFE0B2;'>" +
-                        "<b>🏆 Current Best Oral:</b> " + facade.getOralWinner() + " | " +
-                        "<b>🏆 Current Best Poster:</b> " + facade.getPosterWinner() + "</div></html>";
-            masterAwardPanel.add(new JLabel(winnerInfo), BorderLayout.NORTH);
-
-            // Center Section: The Full Table (Detailed Credentials & Scores)
-            JTextArea detailArea = new JTextArea(facade.generateFullReport());
-            detailArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-            detailArea.setEditable(false);
-            masterAwardPanel.add(new JScrollPane(detailArea), BorderLayout.CENTER);
-
-            newContent = masterAwardPanel;
-         break;
-
-        case "Generate Reports":
-            //show ONLY the technical report (no winner headers)
-            newContent = createReportPanel();
-            break;
-
-        case "Profile":
-            newContent = createProfilePanel();
-            break;
-
-        case "Dashboard":
-            newContent = createContentPanel();
-            break;
-
-        default:
-            newContent = new JPanel();
-            newContent.add(new JLabel("Module: " + menuItem + " coming soon."));
+        if (model.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "No seminars registered yet!");
+        } else {
+            frame.setVisible(true);
+        }
     }
 
-    //re-inject and refresh the UI
-    currentPanel.add(newContent, BorderLayout.CENTER);
-    currentPanel.revalidate();
-    currentPanel.repaint();
-}
-
-    private void logout() {
-        int confirm = JOptionPane.showConfirmDialog(
-            this,
-            "Are you sure you want to logout?",
-            "Confirm Logout",
-            JOptionPane.YES_NO_OPTION
-        );
+    private void logout() {//logout
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to logout?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             dispose();
             new LoginSystem(this).show();
         }
     }
-    
-    // Logic for a separate Report Panel (Technical View)
-    private JPanel createReportPanel() {
-        award.SystemAnalyticsFacade facade = new award.SystemAnalyticsFacade();
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createTitledBorder("Full Technical Report"));
-    
-        JTextArea reportArea = new JTextArea(facade.generateFullReport());
-        reportArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        reportArea.setEditable(false);
-        
-        panel.add(new JScrollPane(reportArea), BorderLayout.CENTER);
-        return panel;
-}
-
-// Logic for the Profile Panel
-    private JPanel createProfilePanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(Color.WHITE);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-    
-        JLabel lblIcon = new JLabel("👤"); // Simple user icon
-        lblIcon.setFont(new Font("Serif", Font.PLAIN, 100));
-    
-        JLabel lblName = new JLabel("Name: " + currentUserName);
-        lblName.setFont(new Font("SansSerif", Font.BOLD, 18));
-    
-        JLabel lblID = new JLabel("User ID: " + currentUserID);
-        JLabel lblRole = new JLabel("Role: " + currentUserRole);
-    
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(lblIcon, gbc);
-        gbc.gridy = 1;
-        panel.add(lblName, gbc);
-        gbc.gridy = 2;
-        panel.add(lblID, gbc);
-        gbc.gridy = 3;
-        panel.add(lblRole, gbc);
-    
-        return panel;
-}
 
     public String getCurrentUserID() { return currentUserID; }
     public String getCurrentUserName() { return currentUserName; }

@@ -1,12 +1,14 @@
 package award;
 
 import shared.Constants;
-// PATTERN:Facade
+import core.FileHandler;
+
+//PATTERN: Facade
 public class SystemAnalyticsFacade {
 
-    private final AwardSystem awardSystem;
-    private final ReportGenerator reportGenerator;
-    private final  ExportManager exportManager;
+    private AwardSystem awardSystem;
+    private ReportGenerator reportGenerator;
+    private ExportManager exportManager;
 
     public SystemAnalyticsFacade() {
         this.awardSystem = new AwardSystem();
@@ -19,13 +21,13 @@ public class SystemAnalyticsFacade {
         return reportGenerator.generateGeneralReport();
     }
 
-    //get winners for dashboard
+    //winners for dashbaord
     public String getOralWinner() {
-        return awardSystem.determineWinner(Constants.PRESENTATION_ORAL);
+        return awardSystem.determineWinner("Oral");
     }
 
     public String getPosterWinner() {
-        return awardSystem.determineWinner(Constants.PRESENTATION_POSTER);
+        return awardSystem.determineWinner("Poster");
     }
 
     //export features
@@ -34,8 +36,7 @@ public class SystemAnalyticsFacade {
         exportManager.exportReport(content, filename);
     }
 
-    public void exportDataToExcel(String filename) {
-        //converts report data into CSV format for excel
+    public void exportDataToExcel(String filename) {//CSV format for excel 
         String content = reportGenerator.generateGeneralReport().replace("|", ",");
         exportManager.exportDataToCSV(content, filename);
     }

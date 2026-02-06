@@ -1,6 +1,5 @@
 package coordinator;
 
-
 import shared.Constants;
 import java.io.*;
 import java.util.ArrayList;
@@ -19,14 +18,13 @@ public class SessionManager {
         return instance;
     }
     public void createSession(String date, String time, String venue, String evaluatorName) {
-        //ID auto increment
         int nextId = sessions.isEmpty() ? 1 : sessions.get(sessions.size() - 1).id + 1;
         Session newSession = new Session(nextId, date, time, venue, evaluatorName);
         sessions.add(newSession);
         saveToFile();
     }
 
-    //Update Sesion
+    //update Sesion
     public void updateSession(int id, String newDate, String newTime, String newVenue, String newEvaluator) {
         for (Session s : sessions) {
             if (s.id == id) {
@@ -37,13 +35,13 @@ public class SessionManager {
                 break;
             }
         }
-        saveToFile(); //txt
+        saveToFile();//.txt
     }
 
     //Delete
     public void deleteSession(int id) {
         sessions.removeIf(s -> s.id == id);
-        saveToFile(); // Save changes to TXT
+        saveToFile(); //save changes to txt
     }
     public List<Session> getAllSessions() {
         return sessions;

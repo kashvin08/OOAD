@@ -9,7 +9,7 @@ public class ExportManager {
     private void writeToFile(String content, String fileName) {
         try (FileWriter writer = new FileWriter(fileName)) {
             writer.write(content);
-            JOptionPane.showMessageDialog(null, "Export successful: " + fileName);
+            JOptionPane.showMessageDialog(null, "Report exported to: " + new java.io.File(fileName).getAbsolutePath());
         } catch (IOException e) {
             System.err.println("Error exporting: " + e.getMessage());
             JOptionPane.showMessageDialog(null, "Error exporting file.");

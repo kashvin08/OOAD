@@ -5,120 +5,119 @@ import javax.swing.*;
 import java.awt.*;
 
 public class EvaluationForm extends JFrame {
+
     private JComboBox<String>[] dropdowns;
     private JTextArea txtComment;
     private EvaluationController controller;
     private RubricSystem rubric;
     private String evalId, studId;
 
-    public EvaluationForm(String evalId, String studId, String title, EvaluationController controller) {
+    public EvaluationForm(String evalId, String studId, String title, String presentationType, EvaluationController controller) {
         this.evalId = evalId;
         this.studId = studId;
         this.controller = controller;
         this.rubric = new RubricSystem();
 
-        setTitle("Grading Form - Student: " + studId);
-        setTitle("Evaluation Form");
+        boolean isPoster = presentationType.equalsIgnoreCase("Poster");
 
-        setExtendedState(JFrame.MAXIMIZED_BOTH); 
-        
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
+        setTitle("Grading: " + studId + (isPoster ? " [POSTER]" : " [ORAL]"));
+        setSize(600, 750);
         setLayout(new BorderLayout());
         getContentPane().setBackground(Constants.COLOR_BACKGROUND);
 
-        JPanel info = new JPanel(new GridLayout(3, 1)); 
+        //info panel
+        JPanel info = new JPanel(new GridLayout(isPoster ? 3 : 2, 1));
         info.setBackground(Constants.PRIMARY_COLOR);
-        info.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+
+        JLabel l1 = new JLabel("  Student: " + studId);
+        JLabel l2 = new JLabel("  Topic: " + title);
         
-        JLabel lblMainTitle = new JLabel("EVALUATION FORM"); 
-        lblMainTitle.setFont(new Font("SansSerif", Font.BOLD, 24));
-        lblMainTitle.setForeground(Constants.COLOR_ACCENT);
-        
-        JLabel l1 = new JLabel("Student: " + studId);
-        JLabel l2 = new JLabel("Project: " + title);
-        
-        Font f = new Font("SansSerif", Font.PLAIN, 18);
+        Font f = new Font("SansSerif", Font.BOLD, 16);
         l1.setFont(f); l2.setFont(f);
         l1.setForeground(Color.WHITE); l2.setForeground(Color.WHITE);
-        
-        info.add(lblMainTitle);
-        info.add(l1); 
+
+        info.add(l1);
         info.add(l2);
+
+        if (isPoster) {
+            JLabel l3 = new JLabel("  Category: Poster Presentation (Visual Criteria Applied)");
+            l3.setFont(new Font("SansSerif", Font.ITALIC, 14));
+            l3.setForeground(Color.YELLOW);
+            info.add(l3);
+        }
+
         add(info, BorderLayout.NORTH);
 
-        //rubrics
-        JPanel center = new JPanel(new GridLayout(5, 2, 20, 20)); 
+        //rubrics panel
+        JPanel center = new JPanel(new GridLayout(5, 2, 10, 10));
         center.setBackground(Constants.COLOR_BACKGROUND);
-        center.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(Constants.PRIMARY_COLOR), 
-            "Scoring Criteria",
-            0, 0, new Font("SansSerif", Font.BOLD, 16)
-        ));
+        center.setBorder(BorderFactory.createTitledBorder("Evaluation Criteria"));
+
+        String[] criteriaLabels;//criteria based on pres types
+        if (isPoster) {
+            criteriaLabels = new String[]{"Visual Layout", "Content Clarity", "Engagement", "Technical Depth"};
+        } else {
+            criteriaLabels = new String[]{"Oral Delivery", "Slide Quality", "Q&A Handling", "Time Management"};
+        }
 
         dropdowns = new JComboBox[4];
-        for(int i=0; i<4; i++) {
-            JLabel lblCriteria = new JLabel(RubricSystem.CRITERIA[i]);
-            lblCriteria.setFont(new Font("SansSerif", Font.BOLD, 16));
-            center.add(lblCriteria);
+        for (int i = 0; i < 4; i++) {
+            JLabel critLabel = new JLabel(criteriaLabels[i]);
+            critLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            center.add(critLabel);
             
             dropdowns[i] = new JComboBox<>(RubricSystem.RATINGS);
-            dropdowns[i].setFont(new Font("SansSerif", Font.PLAIN, 14));
             dropdowns[i].setBackground(Color.WHITE);
             center.add(dropdowns[i]);
         }
+        add(center, BorderLayout.CENTER);
 
-        JPanel centerContainer = new JPanel(new BorderLayout());
-        centerContainer.setBackground(Constants.COLOR_BACKGROUND);
-        centerContainer.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        centerContainer.add(center, BorderLayout.CENTER);
-        
-        add(centerContainer, BorderLayout.CENTER);
-
-        //comment
+        //comment & submit
         JPanel bottom = new JPanel(new BorderLayout());
         bottom.setBackground(Constants.COLOR_BACKGROUND);
-        bottom.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
-        
+
         txtComment = new JTextArea(4, 20);
-        txtComment.setBorder(BorderFactory.createTitledBorder("Additional Feedback"));
-        txtComment.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        
+        txtComment.setBorder(BorderFactory.createTitledBorder("Evaluator Feedback"));
+
         JButton btnSubmit = new JButton("Submit Evaluation");
         btnSubmit.setBackground(Constants.COLOR_ACCENT);
         btnSubmit.setForeground(Color.WHITE);
-        btnSubmit.setFont(new Font("SansSerif", Font.BOLD, 18));
-        btnSubmit.setPreferredSize(new Dimension(200, 50)); 
-        
+        btnSubmit.setFont(new Font("SansSerif", Font.BOLD, 14));
+
         btnSubmit.addActionListener(e -> submit());
-        
+
         bottom.add(new JScrollPane(txtComment), BorderLayout.CENTER);
         bottom.add(btnSubmit, BorderLayout.SOUTH);
         add(bottom, BorderLayout.SOUTH);
+
+        setVisible(true);
     }
 
     public void fillData(String[] data) {
-        for(int i=0; i<4; i++) {
-            int score = Integer.parseInt(data[i]);
-            if(score >= 1 && score <= 5) {
-                dropdowns[i].setSelectedIndex(score - 1);
-            }
+        for (int i = 0; i < 4; i++) {
+            try {
+                int score = Integer.parseInt(data[i]);
+                if (score >= 1 && score <= 5) {
+                    dropdowns[i].setSelectedIndex(score - 1);
+                }
+            } catch (Exception e) { }
         }
         txtComment.setText(data[5]);
     }
 
     private void submit() {
         int[] scores = new int[4];
-        for(int i=0; i<4; i++) {
+        for (int i = 0; i < 4; i++) {
             String val = (String) dropdowns[i].getSelectedItem();
             scores[i] = rubric.getScoreValue(val);
         }
-        
+
         int total = rubric.calculateTotal(scores);
-        String cmt = txtComment.getText();
-        
+        String cmt = txtComment.getText().replace(Constants.DELIMITER, " ");
+
         boolean success = controller.saveEvaluation(evalId, studId, scores, total, cmt);
-        
-        if(success) {
+
+        if (success) {
             JOptionPane.showMessageDialog(this, Constants.SUCCESS_SAVE);
             dispose();
         } else {

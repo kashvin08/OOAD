@@ -1,5 +1,6 @@
 package coordinator;
 
+import shared.Constants;
 import java.util.List;
 
 public class AssignmentSystem {
@@ -33,4 +34,3 @@ public class AssignmentSystem {
         return false;
     }
 }
-

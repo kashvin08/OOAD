@@ -1,6 +1,5 @@
 package coordinator;
 
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,9 +9,8 @@ import java.util.List;
 
 public class ScheduleGenerator {
 
-    //Get session
+    //get session
     public List<SessionManager.Session> getOrderedSchedule() {
-        //Get data
         List<SessionManager.Session> allSessions = new ArrayList<>(SessionManager.getInstance().getAllSessions());
         if (allSessions.isEmpty()) {
             return allSessions;
@@ -24,12 +22,12 @@ public class ScheduleGenerator {
             @Override
             public int compare(SessionManager.Session s1, SessionManager.Session s2) {
                 try {
-                    //Extract start time
+                    //get start time
                     String t1 = s1.time.split(" - ")[0];
                     String t2 = s2.time.split(" - ")[0];
                     Date d1 = sdf.parse(s1.date + " " + t1);
                     Date d2 = sdf.parse(s2.date + " " + t2);
-                    return d1.compareTo(d2); //ascending order
+                    return d1.compareTo(d2); //asc order
                 } catch (Exception e) {
                     return 0;
                 }

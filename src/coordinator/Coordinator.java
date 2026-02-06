@@ -5,7 +5,6 @@ import javax.swing.JPanel;
 
 public class Coordinator extends User {
     public Coordinator(String userID, String name, String email, String password) {
-        // Call
         super(userID, name, email, password, UserRole.COORDINATOR);
     }
     @Override

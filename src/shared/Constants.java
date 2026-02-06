@@ -2,7 +2,7 @@ package shared;
 
 import java.awt.Color;
 
-public class Constants {
+public class Constants {//constants file for synchronizing code/methods/paths/etc. between our groupmates
     
     // ==================== FILE PATHS ====================
     public static final String DATA_DIR = "data/";
@@ -33,9 +33,11 @@ public class Constants {
     public static final Color COLOR_ACCENT = new Color(255, 153, 0);    // Orange
     public static final Color COLOR_BACKGROUND = new Color(240, 245, 250);
     
-    // ==================== PRESENTATION TYPES ====================
-    public static final String PRESENTATION_ORAL = "ORAL";
-    public static final String PRESENTATION_POSTER = "POSTER";
+    // ==================== PRESENTATION TYPES & CRITERIA ====================
+    public static final String PRESENTATION_ORAL = "Oral";
+    public static final String PRESENTATION_POSTER = "Poster";
+    public static final String[] CRITERIA_ORAL = {"Delivery", "Content", "Slides", "Q&A"};
+    public static final String[] CRITERIA_POSTER = {"Visual Layout", "Content Clarity", "Engagement", "Technical Depth"};
     
     // ==================== ERROR MESSAGES ====================
     public static final String ERROR_LOGIN_FAILED = "Invalid credentials!";
