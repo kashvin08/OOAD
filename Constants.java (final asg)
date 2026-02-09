@@ -1,0 +1,33 @@
+package shared;
+
+import java.awt.Color;
+
+public final class Constants {
+    //file paths for persistence 
+    public static final String DATA_DIR = "data/";
+    public static final String VEHICLES_FILE = DATA_DIR + "parked_vehicles.txt";
+    public static final String FINES_FILE = DATA_DIR + "unpaid_fines.txt";
+    public static final String REVENUE_FILE = DATA_DIR + "revenue_report.txt";
+    public static final String DELIMITER = "|";
+
+    //parking rates (rm/hour) 
+    public static final double RATE_COMPACT = 2.0;
+    public static final double RATE_REGULAR = 5.0;
+    public static final double RATE_HANDICAPPED_RESERVED = 2.0; // 2rm if not card holder
+    public static final double RATE_HANDICAPPED_CARD = 0.0;    // free for oku card holders
+    public static final double RATE_VIP_RESERVED = 10.0;
+
+    //fine amounts (options)
+    public static final double FINE_FIXED = 50.0;             
+    public static final double FINE_HOURLY = 20.0;            
+    public static final double FINE_LIMIT_24 = 50.0;          
+    public static final double FINE_LIMIT_48 = 100.0;         
+    public static final double FINE_LIMIT_72 = 150.0;        
+    public static final double FINE_LIMIT_MAX = 200.0;       
+
+    //GUI theme
+    public static final String APP_TITLE = "University Parking Management System";
+    public static final Color PRIMARY_COLOR = new Color(0, 102, 204);
+    public static final int WINDOW_WIDTH = 900;
+    public static final int WINDOW_HEIGHT = 700;
+}
